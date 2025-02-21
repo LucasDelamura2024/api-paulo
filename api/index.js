@@ -268,19 +268,16 @@ app.get('/list-drivers', async (req, res) => {
 });
 
 // Listar entradas
+// Listar entradas
 app.get('/list-entrances', async (req, res) => {
     try {
         const connection = await pool.getConnection();
         try {
             const [rows] = await connection.query(
-                `SELECT * FROM ${flexEntranceTable} ORDER BY id DESC LIMIT 50`
+                `SELECT * FROM ${flexEntranceTable} ORDER BY id DESC`
             );
             
-            res.json({
-                status: 'success',
-                count: rows.length,
-                data: rows
-            });
+            res.json(rows);
         } catch (error) {
             res.status(500).json({ 
                 status: 'error',
