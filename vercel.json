@@ -1,17 +1,6 @@
 {
-    "version": 2,
     "rewrites": [
       { "source": "/api/(.*)", "destination": "/api" }
-    ],
-    "functions": {
-      "api/index.js": {
-        "memory": 1024,
-        "maxDuration": 10
-      }
-    },
-    "env": {
-      "DB_HOST": "br808.hostgator.com.br",
-      "DB_PORT": "3306",
-      "DB_NAME": "dispon40_flex_hubs"
-    }
+    ]
   }
+  
