@@ -32,6 +32,10 @@
       "dest": "index.js"
     },
     {
+      "src": "/list-all-entrances",
+      "dest": "index.js"
+    },
+    {
       "src": "/setup-test-tables",
       "dest": "index.js"
     },

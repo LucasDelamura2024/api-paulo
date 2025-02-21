@@ -42,6 +42,39 @@ app.get('/', async (req, res) => {
   });
 });
 
+app.get('/list-all-entrances', async (req, res) => {
+    try {
+        const connection = await pool.getConnection();
+        try {
+            // Consulta para trazer TODOS os registros sem limite
+            const [allRegisters] = await connection.query(`
+                SELECT * FROM ${flexEntranceTable}
+                ORDER BY timestamp DESC
+            `);
+            
+            res.json({
+                status: 'success',
+                total_registros: allRegisters.length,
+                registros: allRegisters
+            });
+        } catch (error) {
+            res.status(500).json({ 
+                status: 'error',
+                message: 'Erro ao listar todos os registros',
+                details: error.message 
+            });
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        res.status(500).json({ 
+            status: 'error',
+            message: 'Erro de conexão',
+            details: error.message 
+        });
+    }
+});
+
 // Nova rota para listar datas e registros
 app.get('/list-dates', async (req, res) => {
     try {
