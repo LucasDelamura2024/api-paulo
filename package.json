@@ -1,0 +1,19 @@
+{
+    "name": "driver-registration-api",
+    "version": "1.0.0",
+    "description": "API for testing driver registration system",
+    "main": "api/index.js",
+    "scripts": {
+      "dev": "vercel dev",
+      "deploy": "vercel deploy --prod"
+    },
+    "dependencies": {
+      "serverless-mysql": "^1.5.4"
+    },
+    "devDependencies": {
+      "vercel": "^28.4.12"
+    },
+    "engines": {
+      "node": ">=14.x"
+    }
+  }
