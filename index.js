@@ -48,11 +48,13 @@ app.get('/', async (req, res) => {
     });
   });
 
-// Nova rota para listar datas e registros
-app.get('/list-dates', async (req, res) => {
+  app.get('/list-dates', async (req, res) => {
     try {
         const connection = await pool.getConnection();
         try {
+            // Log para verificar a conexão
+            console.log(`Tabela sendo consultada: ${flexEntranceTable}`);
+            
             // Consulta para listar todas as datas distintas
             const [dateDays] = await connection.query(`
                 SELECT DISTINCT 
@@ -71,11 +73,17 @@ app.get('/list-dates', async (req, res) => {
             
             res.json({
                 status: 'success',
+                config: {
+                    host: dbConfig.host,
+                    database: dbConfig.database,
+                    table: flexEntranceTable
+                },
                 datas: dateDays,
                 total_registros: allRegisters.length,
                 registros: allRegisters
             });
         } catch (error) {
+            console.error('Erro na consulta:', error);
             res.status(500).json({ 
                 status: 'error',
                 message: 'Erro ao listar datas e registros',
@@ -85,6 +93,7 @@ app.get('/list-dates', async (req, res) => {
             connection.release();
         }
     } catch (error) {
+        console.error('Erro de conexão:', error);
         res.status(500).json({ 
             status: 'error',
             message: 'Erro de conexão',
