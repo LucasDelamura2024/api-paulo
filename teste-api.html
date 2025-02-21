@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API de Teste - Sistema de Registro de Motoristas</title>
+    <title>Teste da API - Registro de Motoristas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -115,12 +115,23 @@
     <div class="container">
         <div class="card">
             <div class="card-header">
-                <h4 class="mb-0">API de Testes - Registro de Motoristas</h4>
+                <h4 class="mb-0">API de Teste - Registro de Motoristas</h4>
             </div>
             <div class="test-mode-banner">
                 <i class="fas fa-flask me-2"></i> AMBIENTE DE TESTE
+                <div id="serverInfo" class="mt-1 small"></div>
             </div>
             <div class="card-body">
+                <div class="mb-3">
+                    <label for="apiUrl" class="form-label">URL da API:</label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="apiUrl" value="http://localhost:3000">
+                        <button class="btn btn-primary" type="button" id="saveApiUrl">Salvar</button>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
                 <h5 class="mb-4">Teste de Conexão</h5>
                 <button id="testConnection" class="btn btn-primary mb-3">
                     <i class="fas fa-database me-2"></i> Testar Conexão
@@ -128,19 +139,20 @@
                 <div id="connectionResult" class="mt-3" style="display: none;"></div>
 
                 <hr class="my-4">
+
+                <h5 class="mb-4">Criar Tabelas de Teste</h5>
+                <button id="setupTestTables" class="btn btn-primary mb-3">
+                    <i class="fas fa-table me-2"></i> Criar Tabelas de Teste
+                </button>
+                <div id="setupResult" class="mt-3" style="display: none;"></div>
+                
+                <hr class="my-4">
                 
                 <h5 class="mb-4">Endpoints Disponíveis</h5>
                 
                 <div class="endpoint-card p-3">
                     <div class="endpoint-title mb-2">
-                        <span class="http-method get">GET</span> /api/test-connection
-                    </div>
-                    <p class="small text-muted">Testa a conexão com o banco de dados.</p>
-                </div>
-                
-                <div class="endpoint-card p-3">
-                    <div class="endpoint-title mb-2">
-                        <span class="http-method get">GET</span> /api/check-driver?cpf=123.456.789-00
+                        <span class="http-method get">GET</span> /check-driver?cpf=123.456.789-00
                     </div>
                     <p class="small text-muted">Verifica se um motorista existe pelo CPF.</p>
                     <div class="mt-2">
@@ -154,7 +166,7 @@
                 
                 <div class="endpoint-card p-3">
                     <div class="endpoint-title mb-2">
-                        <span class="http-method post">POST</span> /api/register-entrance
+                        <span class="http-method post">POST</span> /register-entrance
                     </div>
                     <p class="small text-muted">Registra a entrada de um motorista.</p>
                     <div class="mt-2">
@@ -178,7 +190,7 @@
                 
                 <div class="endpoint-card p-3">
                     <div class="endpoint-title mb-2">
-                        <span class="http-method get">GET</span> /api/list-drivers
+                        <span class="http-method get">GET</span> /list-drivers
                     </div>
                     <p class="small text-muted">Lista os motoristas cadastrados (limitado a 50).</p>
                     <button id="listDrivers" class="btn btn-primary mt-2">Listar Motoristas</button>
@@ -187,7 +199,7 @@
                 
                 <div class="endpoint-card p-3">
                     <div class="endpoint-title mb-2">
-                        <span class="http-method get">GET</span> /api/list-entrances
+                        <span class="http-method get">GET</span> /list-entrances
                     </div>
                     <p class="small text-muted">Lista as entradas registradas (limitado a 50).</p>
                     <button id="listEntrances" class="btn btn-primary mt-2">Listar Entradas</button>
@@ -198,13 +210,36 @@
     </div>
 
     <script>
-        // Configure sua URL base da API aqui
-        const API_BASE_URL = 'https://your-vercel-deployment-url.vercel.app';
+        // Salvar URL da API no localStorage
+        document.getElementById('saveApiUrl').addEventListener('click', function() {
+            const apiUrl = document.getElementById('apiUrl').value.trim();
+            if (apiUrl) {
+                localStorage.setItem('apiUrl', apiUrl);
+                alert('URL da API salva com sucesso!');
+                testConnection(); // Testar a conexão após salvar
+            }
+        });
         
+        // Carregar URL da API do localStorage
+        window.addEventListener('DOMContentLoaded', function() {
+            const savedUrl = localStorage.getItem('apiUrl');
+            if (savedUrl) {
+                document.getElementById('apiUrl').value = savedUrl;
+                testConnection(); // Testar a conexão ao carregar a página
+            }
+        });
+        
+        // Obter URL da API
+        function getApiUrl() {
+            return document.getElementById('apiUrl').value.trim();
+        }
+        
+        // Formatar JSON para exibição
         function formatJSON(json) {
             return JSON.stringify(json, null, 2);
         }
         
+        // Exibir resultado
         function showResult(elementId, success, data) {
             const element = document.getElementById(elementId);
             element.style.display = 'block';
@@ -216,31 +251,58 @@
             `;
         }
         
-        // Test Connection
-        document.getElementById('testConnection').addEventListener('click', async () => {
+        // Testar conexão
+        function testConnection() {
+            const apiUrl = getApiUrl();
+            document.getElementById('serverInfo').innerHTML = `Conectado a: ${apiUrl}`;
+            
+            fetch(`${apiUrl}/`)
+                .then(response => response.json())
+                .then(data => {
+                    showResult('connectionResult', true, data);
+                })
+                .catch(error => {
+                    showResult('connectionResult', false, { error: error.message });
+                });
+        }
+        
+        document.getElementById('testConnection').addEventListener('click', testConnection);
+        
+        // Configurar tabelas de teste
+        document.getElementById('setupTestTables').addEventListener('click', async () => {
+            const apiUrl = getApiUrl();
             try {
-                const response = await fetch(`${API_BASE_URL}/api/test-connection`);
+                const response = await fetch(`${apiUrl}/setup-test-tables`, {
+                    method: 'POST'
+                });
                 const data = await response.json();
-                showResult('connectionResult', response.ok, data);
+                showResult('setupResult', response.ok, data);
             } catch (error) {
-                showResult('connectionResult', false, { error: error.message });
+                showResult('setupResult', false, { error: error.message });
             }
         });
         
-        // Check Driver
+        // Verificar motorista
         document.getElementById('checkDriver').addEventListener('click', async () => {
+            const apiUrl = getApiUrl();
             const cpf = document.getElementById('checkCpf').value;
             try {
-                const response = await fetch(`${API_BASE_URL}/api/check-driver?cpf=${encodeURIComponent(cpf)}`);
+                const response = await fetch(`${apiUrl}/check-driver?cpf=${encodeURIComponent(cpf)}`);
                 const data = await response.json();
                 showResult('checkDriverResult', response.ok, data);
+                
+                // Se o motorista for encontrado, preencher automaticamente o CPF no formulário de registro
+                if (response.ok && data.podeRegistrar) {
+                    document.getElementById('registerCpf').value = cpf;
+                }
             } catch (error) {
                 showResult('checkDriverResult', false, { error: error.message });
             }
         });
         
-        // Register Entrance
+        // Registrar entrada
         document.getElementById('registerEntrance').addEventListener('click', async () => {
+            const apiUrl = getApiUrl();
             const cpf = document.getElementById('registerCpf').value;
             const tipo = document.getElementById('registerTipo').value;
             
@@ -250,7 +312,7 @@
             }
             
             try {
-                const response = await fetch(`${API_BASE_URL}/api/register-entrance`, {
+                const response = await fetch(`${apiUrl}/register-entrance`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -270,10 +332,11 @@
             }
         });
         
-        // List Drivers
+        // Listar motoristas
         document.getElementById('listDrivers').addEventListener('click', async () => {
+            const apiUrl = getApiUrl();
             try {
-                const response = await fetch(`${API_BASE_URL}/api/list-drivers`);
+                const response = await fetch(`${apiUrl}/list-drivers`);
                 const data = await response.json();
                 showResult('listDriversResult', response.ok, data);
             } catch (error) {
@@ -281,10 +344,11 @@
             }
         });
         
-        // List Entrances
+        // Listar entradas
         document.getElementById('listEntrances').addEventListener('click', async () => {
+            const apiUrl = getApiUrl();
             try {
-                const response = await fetch(`${API_BASE_URL}/api/list-entrances`);
+                const response = await fetch(`${apiUrl}/list-entrances`);
                 const data = await response.json();
                 showResult('listEntrancesResult', response.ok, data);
             } catch (error) {
@@ -292,23 +356,28 @@
             }
         });
         
-        // Add CPF mask
-        document.getElementById('checkCpf').addEventListener('input', function(e) {
-            let value = e.target.value;
-            value = value.replace(/\D/g, '');
+        // Máscara para CPF
+        function maskCPF(input) {
+            let value = input.value.replace(/\D/g, '');
             if (value.length <= 11) {
-                value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/g, "$1.$2.$3-$4");
+                value = value.replace(/(\d{3})(\d{1,3})(\d{1,3})(\d{1,2})/, function(_, p1, p2, p3, p4) {
+                    let result = p1;
+                    if (p2) result += '.' + p2;
+                    if (p3) result += '.' + p3;
+                    if (p4) result += '-' + p4;
+                    return result;
+                });
             }
-            e.target.value = value;
+            input.value = value;
+        }
+        
+        // Aplicar máscaras
+        document.getElementById('checkCpf').addEventListener('input', function() {
+            maskCPF(this);
         });
         
-        document.getElementById('registerCpf').addEventListener('input', function(e) {
-            let value = e.target.value;
-            value = value.replace(/\D/g, '');
-            if (value.length <= 11) {
-                value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/g, "$1.$2.$3-$4");
-            }
-            e.target.value = value;
+        document.getElementById('registerCpf').addEventListener('input', function() {
+            maskCPF(this);
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
