@@ -106,16 +106,28 @@ app.get('/list-all-entrances', async (req, res) => {
     try {
         const connection = await pool.getConnection();
         try {
-            console.log(`Configurações de conexão:`, {
+            // Log detalhado
+            console.log('Configurações de Conexão:', {
                 host: dbConfig.host,
                 database: dbConfig.database,
                 table: flexEntranceTable
             });
             
-            // Consulta para trazer TODOS os registros sem limite
+            // Adicionar parâmetros de paginação
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 1000;
+            const offset = (page - 1) * limit;
+            
+            // Consulta com paginação
             const [allRegisters] = await connection.query(`
                 SELECT * FROM ${flexEntranceTable}
                 ORDER BY timestamp DESC
+                LIMIT ? OFFSET ?
+            `, [limit, offset]);
+            
+            // Contar total de registros
+            const [countResult] = await connection.query(`
+                SELECT COUNT(*) as total FROM ${flexEntranceTable}
             `);
             
             res.json({
@@ -125,7 +137,11 @@ app.get('/list-all-entrances', async (req, res) => {
                     database: dbConfig.database,
                     table: flexEntranceTable
                 },
-                total_registros: allRegisters.length,
+                pagination: {
+                    page,
+                    limit,
+                    total_registros: countResult[0].total
+                },
                 registros: allRegisters
             });
         } catch (error) {
