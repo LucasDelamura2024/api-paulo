@@ -8,6 +8,10 @@
   ],
   "routes": [
     {
+      "src": "/list-entrances",
+      "dest": "index.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.js"
     }

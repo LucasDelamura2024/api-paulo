@@ -40,6 +40,26 @@ app.get('/', async (req, res) => {
     }
 });
 
+// Listar entradas
+app.get('/list-entrances', async (req, res) => {
+    try {
+        const connection = await pool.getConnection();
+        try {
+            const [rows] = await connection.query(`
+                SELECT * FROM flex_entrance_teste 
+                ORDER BY timestamp DESC
+            `);
+            res.json(rows);
+        } catch (error) {
+            res.status(500).json({ error: 'Erro ao buscar registros', details: error.message });
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Erro de conexão', details: error.message });
+    }
+});
+
 // ============ ROTAS FLEX_ENTRANCE ============
 
 // Listar todas as entradas
