@@ -56,7 +56,7 @@ app.get('/list-dates', async (req, res) => {
             // Consulta para listar todas as datas distintas
             const [dateDays] = await connection.query(`
                 SELECT DISTINCT 
-                    DATE(created_at) as data_registro,
+                    DATE(timestamp) as data_registro,
                     COUNT(*) as total_registros
                 FROM ${flexEntranceTable}
                 ORDER BY data_registro DESC
@@ -65,7 +65,8 @@ app.get('/list-dates', async (req, res) => {
             // Consulta para trazer todos os registros
             const [allRegisters] = await connection.query(`
                 SELECT * FROM ${flexEntranceTable}
-                ORDER BY created_at DESC
+                ORDER BY timestamp DESC
+                LIMIT 1000
             `);
             
             res.json({
@@ -78,7 +79,7 @@ app.get('/list-dates', async (req, res) => {
             res.status(500).json({ 
                 status: 'error',
                 message: 'Erro ao listar datas e registros',
-                error: error.message 
+                details: error.message 
             });
         } finally {
             connection.release();
@@ -87,7 +88,7 @@ app.get('/list-dates', async (req, res) => {
         res.status(500).json({ 
             status: 'error',
             message: 'Erro de conexão',
-            error: error.message 
+            details: error.message 
         });
     }
 });
