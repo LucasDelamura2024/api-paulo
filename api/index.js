@@ -11,6 +11,12 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+const path = require('path');
+
+app.get('/teste', (req, res) => {
+  res.sendFile(path.join(__dirname, 'teste-api.html'));
+});
+
 // Configuração do banco de dados
 const dbConfig = {
     host: process.env.DB_HOST || 'br808.hostgator.com.br',
@@ -25,8 +31,8 @@ const pool = mysql.createPool(dbConfig);
 
 // Definir se deve usar tabelas de teste
 const useTestTables = true;
-const motoristasTable = useTestTables ? 'motoristas_teste' : 'motoristas';
-const flexEntranceTable = useTestTables ? 'flex_entrance_teste' : 'flex_entrance';
+const motoristasTable = useTestTables ? 'motoristas_teste' : 'motoristas_teste1';
+const flexEntranceTable = useTestTables ? 'flex_entrance_teste' : 'flex_entrance_teste1';
 
 // Função para limpar o CPF (remover pontos e traços)
 function limparCPF(cpf) {
@@ -36,47 +42,13 @@ function limparCPF(cpf) {
 // Rota inicial (teste de conexão)
 // Rota inicial (teste de conexão)
 app.get('/', async (req, res) => {
-  res.json({ 
-    message: 'API de Check-in está funcionando!',
-    status: 'online'
+    res.json({ 
+      message: 'API de Check-in está funcionando!',
+      status: 'online'
+    });
   });
-});
 
-app.get('/list-all-entrances', async (req, res) => {
-    try {
-        const connection = await pool.getConnection();
-        try {
-            // Consulta para trazer TODOS os registros sem limite
-            const [allRegisters] = await connection.query(`
-                SELECT * FROM ${flexEntranceTable}
-                ORDER BY timestamp DESC
-            `);
-            
-            res.json({
-                status: 'success',
-                total_registros: allRegisters.length,
-                registros: allRegisters
-            });
-        } catch (error) {
-            res.status(500).json({ 
-                status: 'error',
-                message: 'Erro ao listar todos os registros',
-                details: error.message 
-            });
-        } finally {
-            connection.release();
-        }
-    } catch (error) {
-        res.status(500).json({ 
-            status: 'error',
-            message: 'Erro de conexão',
-            details: error.message 
-        });
-    }
-});
-
-// Nova rota para listar datas e registros
-app.get('/list-dates', async (req, res) => {
+  app.get('/list-dates', async (req, res) => {
     try {
         const connection = await pool.getConnection();
         try {
@@ -126,6 +98,54 @@ app.get('/list-dates', async (req, res) => {
             status: 'error',
             message: 'Erro de conexão',
             details: error.message 
+        });
+    }
+});
+
+app.get('/list-all-entrances', async (req, res) => {
+    try {
+        const connection = await pool.getConnection();
+        try {
+            console.log(`Configurações de conexão:`, {
+                host: dbConfig.host,
+                database: dbConfig.database,
+                table: flexEntranceTable
+            });
+            
+            // Consulta para trazer TODOS os registros sem limite
+            const [allRegisters] = await connection.query(`
+                SELECT * FROM ${flexEntranceTable}
+                ORDER BY timestamp DESC
+            `);
+            
+            res.json({
+                status: 'success',
+                config: {
+                    host: dbConfig.host,
+                    database: dbConfig.database,
+                    table: flexEntranceTable
+                },
+                total_registros: allRegisters.length,
+                registros: allRegisters
+            });
+        } catch (error) {
+            console.error('Erro na consulta:', error);
+            res.status(500).json({ 
+                status: 'error',
+                message: 'Erro ao listar todos os registros',
+                details: error.message,
+                stack: error.stack
+            });
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        console.error('Erro de conexão:', error);
+        res.status(500).json({ 
+            status: 'error',
+            message: 'Erro de conexão',
+            details: error.message,
+            stack: error.stack
         });
     }
 });
