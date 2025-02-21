@@ -11,6 +11,12 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+const path = require('path');
+
+app.get('/teste', (req, res) => {
+  res.sendFile(path.join(__dirname, 'teste-api.html'));
+});
+
 // Configuração do banco de dados
 const dbConfig = {
     host: process.env.DB_HOST || 'br808.hostgator.com.br',
