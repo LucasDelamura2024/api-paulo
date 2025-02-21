@@ -46,6 +46,18 @@
     {
       "src": "/list-dates",
       "dest": "index.js"
+    },
+    {
+      "src": "/entries",
+      "dest": "index.js"
+    },
+    {
+      "src": "/entries/driver/[cpf]",
+      "dest": "index.js"
+    },
+    {
+      "src": "/entries/status/[status]",
+      "dest": "index.js"
     }
   ],
   "env": {

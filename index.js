@@ -268,31 +268,64 @@ app.get('/list-drivers', async (req, res) => {
 });
 
 // Listar entradas
-// Listar entradas
-app.get('/list-entrances', async (req, res) => {
+// Listar todas as entradas
+app.get('/entries', async (req, res) => {
     try {
         const connection = await pool.getConnection();
         try {
-            const [rows] = await connection.query(
-                `SELECT * FROM ${flexEntranceTable} ORDER BY id DESC`
-            );
-            
+            const [rows] = await connection.query(`
+                SELECT * FROM ${flexEntranceTable} 
+                ORDER BY timestamp DESC 
+                LIMIT 100
+            `);
             res.json(rows);
         } catch (error) {
-            res.status(500).json({ 
-                status: 'error',
-                message: 'Erro ao listar entradas',
-                error: error.message 
-            });
+            res.status(500).json({ error: 'Erro ao buscar registros', details: error.message });
         } finally {
             connection.release();
         }
     } catch (error) {
-        res.status(500).json({ 
-            status: 'error',
-            message: 'Erro de conexão',
-            error: error.message 
-        });
+        res.status(500).json({ error: 'Erro de conexão', details: error.message });
+    }
+});
+
+// Buscar entrada por CPF
+app.get('/entries/driver/:cpf', async (req, res) => {
+    try {
+        const connection = await pool.getConnection();
+        try {
+            const [rows] = await connection.query(
+                `SELECT * FROM ${flexEntranceTable} WHERE cpf = ? ORDER BY timestamp DESC LIMIT 100`,
+                [req.params.cpf]
+            );
+            res.json(rows);
+        } catch (error) {
+            res.status(500).json({ error: 'Erro ao buscar registros', details: error.message });
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Erro de conexão', details: error.message });
+    }
+});
+
+// Buscar entradas por status
+app.get('/entries/status/:status', async (req, res) => {
+    try {
+        const connection = await pool.getConnection();
+        try {
+            const [rows] = await connection.query(
+                `SELECT * FROM ${flexEntranceTable} WHERE status = ? ORDER BY timestamp DESC LIMIT 100`,
+                [req.params.status]
+            );
+            res.json(rows);
+        } catch (error) {
+            res.status(500).json({ error: 'Erro ao buscar registros', details: error.message });
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Erro de conexão', details: error.message });
     }
 });
 
