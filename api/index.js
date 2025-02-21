@@ -34,22 +34,12 @@ function limparCPF(cpf) {
 }
 
 // Rota inicial (teste de conexão)
+// Rota inicial (teste de conexão)
 app.get('/', async (req, res) => {
-    try {
-        const connection = await pool.getConnection();
-        connection.release();
-        res.json({ 
-            message: 'API de Check-in está funcionando!',
-            status: 'online',
-            ambiente: useTestTables ? 'teste' : 'produção',
-            database: 'conectado'
-        });
-    } catch (error) {
-        res.status(500).json({ 
-            message: 'Erro ao conectar com o banco de dados',
-            error: error.message 
-        });
-    }
+  res.json({ 
+    message: 'API de Check-in está funcionando!',
+    status: 'online'
+  });
 });
 
 // Criar tabelas de teste (clone das tabelas originais)
