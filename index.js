@@ -29,10 +29,9 @@ const dbConfig = {
 // Criar pool de conexões
 const pool = mysql.createPool(dbConfig);
 
-// Definir se deve usar tabelas de teste
-const useTestTables = true;
-const motoristasTable = useTestTables ? 'motoristas_teste' : 'motoristas_teste1';
-const flexEntranceTable = useTestTables ? 'flex_entrance_teste' : 'flex_entrance_teste1';
+// Tabelas fixas
+const motoristasTable = 'motoristas_teste';
+const flexEntranceTable = 'flex_entrance_teste';
 
 // Função para limpar o CPF (remover pontos e traços)
 function limparCPF(cpf) {
@@ -40,79 +39,18 @@ function limparCPF(cpf) {
 }
 
 // Rota inicial (teste de conexão)
-// Rota inicial (teste de conexão)
 app.get('/', async (req, res) => {
     res.json({ 
       message: 'API de Check-in está funcionando!',
       status: 'online'
     });
-  });
-
-  app.get('/list-dates', async (req, res) => {
-    try {
-        const connection = await pool.getConnection();
-        try {
-            // Log para verificar a conexão
-            console.log(`Tabela sendo consultada: ${flexEntranceTable}`);
-            
-            // Consulta para listar todas as datas distintas
-            const [dateDays] = await connection.query(`
-                SELECT DISTINCT 
-                    DATE(timestamp) as data_registro,
-                    COUNT(*) as total_registros
-                FROM ${flexEntranceTable}
-                ORDER BY data_registro DESC
-            `);
-            
-            // Consulta para trazer todos os registros
-            const [allRegisters] = await connection.query(`
-                SELECT * FROM ${flexEntranceTable}
-                ORDER BY timestamp DESC
-                LIMIT 1000
-            `);
-            
-            res.json({
-                status: 'success',
-                config: {
-                    host: dbConfig.host,
-                    database: dbConfig.database,
-                    table: flexEntranceTable
-                },
-                datas: dateDays,
-                total_registros: allRegisters.length,
-                registros: allRegisters
-            });
-        } catch (error) {
-            console.error('Erro na consulta:', error);
-            res.status(500).json({ 
-                status: 'error',
-                message: 'Erro ao listar datas e registros',
-                details: error.message 
-            });
-        } finally {
-            connection.release();
-        }
-    } catch (error) {
-        console.error('Erro de conexão:', error);
-        res.status(500).json({ 
-            status: 'error',
-            message: 'Erro de conexão',
-            details: error.message 
-        });
-    }
 });
 
+// Listar todas as entradas
 app.get('/list-all-entrances', async (req, res) => {
     try {
         const connection = await pool.getConnection();
         try {
-            // Log detalhado
-            console.log('Configurações de Conexão:', {
-                host: dbConfig.host,
-                database: dbConfig.database,
-                table: flexEntranceTable
-            });
-            
             // Adicionar parâmetros de paginação
             const page = parseInt(req.query.page) || 1;
             const limit = parseInt(req.query.limit) || 1000;
@@ -132,11 +70,6 @@ app.get('/list-all-entrances', async (req, res) => {
             
             res.json({
                 status: 'success',
-                config: {
-                    host: dbConfig.host,
-                    database: dbConfig.database,
-                    table: flexEntranceTable
-                },
                 pagination: {
                     page,
                     limit,
@@ -149,8 +82,7 @@ app.get('/list-all-entrances', async (req, res) => {
             res.status(500).json({ 
                 status: 'error',
                 message: 'Erro ao listar todos os registros',
-                details: error.message,
-                stack: error.stack
+                details: error.message
             });
         } finally {
             connection.release();
@@ -160,47 +92,7 @@ app.get('/list-all-entrances', async (req, res) => {
         res.status(500).json({ 
             status: 'error',
             message: 'Erro de conexão',
-            details: error.message,
-            stack: error.stack
-        });
-    }
-});
-
-// Criar tabelas de teste (clone das tabelas originais)
-app.post('/setup-test-tables', async (req, res) => {
-    try {
-        const connection = await pool.getConnection();
-        try {
-            // Criar tabela motoristas_teste
-            await connection.query(`
-                CREATE TABLE IF NOT EXISTS motoristas_teste LIKE motoristas;
-                TRUNCATE TABLE motoristas_teste;
-                INSERT INTO motoristas_teste SELECT * FROM motoristas;
-            `);
-            
-            // Criar tabela flex_entrance_teste
-            await connection.query(`
-                CREATE TABLE IF NOT EXISTS flex_entrance_teste LIKE flex_entrance;
-                TRUNCATE TABLE flex_entrance_teste;
-                INSERT INTO flex_entrance_teste SELECT * FROM flex_entrance;
-            `);
-            
-            res.json({ 
-                message: 'Tabelas de teste criadas com sucesso!',
-                tables: [motoristasTable, flexEntranceTable]
-            });
-        } catch (error) {
-            res.status(500).json({ 
-                error: 'Erro ao criar tabelas de teste', 
-                details: error.message 
-            });
-        } finally {
-            connection.release();
-        }
-    } catch (error) {
-        res.status(500).json({ 
-            error: 'Erro de conexão', 
-            details: error.message 
+            details: error.message
         });
     }
 });
@@ -238,8 +130,7 @@ app.get('/check-driver', async (req, res) => {
                 status: 'success',
                 message: 'Motorista encontrado',
                 podeRegistrar: true,
-                data: rows[0],
-                ambiente: useTestTables ? 'teste' : 'produção'
+                data: rows[0]
             });
         } catch (error) {
             res.status(500).json({ 
@@ -277,7 +168,7 @@ app.post('/register-entrance', async (req, res) => {
             
             // Buscar informações do motorista
             const [motoristas] = await connection.query(
-                `SELECT *, telefone as phone, doca FROM ${motoristasTable} 
+                `SELECT * FROM ${motoristasTable} 
                  WHERE cpf = ? OR cpf = ?`,
                 [cpf, cpfLimpo]
             );
@@ -308,7 +199,7 @@ app.post('/register-entrance', async (req, res) => {
                     localizacao || null,
                     driver.rota,
                     driver.cpf,
-                    driver.phone,
+                    driver.telefone,
                     driver.doca
                 ]
             );
@@ -419,6 +310,5 @@ app.use((req, res) => {
 // Iniciar o servidor
 app.listen(port, () => {
     console.log(`Servidor rodando na porta ${port}`);
-    console.log(`Ambiente: ${useTestTables ? 'TESTE' : 'PRODUÇÃO'}`);
     console.log(`Tabelas: ${motoristasTable}, ${flexEntranceTable}`);
 });
