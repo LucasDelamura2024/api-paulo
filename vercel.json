@@ -38,6 +38,10 @@
     {
       "src": "/(.*)",
       "dest": "index.js"
+    },
+    {
+      "src": "/list-dates",
+      "dest": "index.js"
     }
   ],
   "env": {

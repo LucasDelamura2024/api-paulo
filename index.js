@@ -48,6 +48,50 @@ app.get('/', async (req, res) => {
     });
   });
 
+// Nova rota para listar datas e registros
+app.get('/list-dates', async (req, res) => {
+    try {
+        const connection = await pool.getConnection();
+        try {
+            // Consulta para listar todas as datas distintas
+            const [dateDays] = await connection.query(`
+                SELECT DISTINCT 
+                    DATE(created_at) as data_registro,
+                    COUNT(*) as total_registros
+                FROM ${flexEntranceTable}
+                ORDER BY data_registro DESC
+            `);
+            
+            // Consulta para trazer todos os registros
+            const [allRegisters] = await connection.query(`
+                SELECT * FROM ${flexEntranceTable}
+                ORDER BY created_at DESC
+            `);
+            
+            res.json({
+                status: 'success',
+                datas: dateDays,
+                total_registros: allRegisters.length,
+                registros: allRegisters
+            });
+        } catch (error) {
+            res.status(500).json({ 
+                status: 'error',
+                message: 'Erro ao listar datas e registros',
+                error: error.message 
+            });
+        } finally {
+            connection.release();
+        }
+    } catch (error) {
+        res.status(500).json({ 
+            status: 'error',
+            message: 'Erro de conexão',
+            error: error.message 
+        });
+    }
+});
+
 // Criar tabelas de teste (clone das tabelas originais)
 app.post('/setup-test-tables', async (req, res) => {
     try {
