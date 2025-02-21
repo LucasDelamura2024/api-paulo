@@ -8,64 +8,8 @@
   ],
   "routes": [
     {
-      "src": "/",
-      "dest": "index.js"
-    },
-    {
-      "src": "/teste",
-      "dest": "index.js"
-    },
-    {
-      "src": "/check-driver",
-      "dest": "index.js"
-    },
-    {
-      "src": "/register-entrance",
-      "dest": "index.js"
-    },
-    {
-      "src": "/list-drivers",
-      "dest": "index.js"
-    },
-    {
-      "src": "/list-entrances",
-      "dest": "index.js"
-    },
-    {
-      "src": "/list-all-entrances",
-      "dest": "index.js"
-    },
-    {
-      "src": "/setup-test-tables",
-      "dest": "index.js"
-    },
-    {
       "src": "/(.*)",
-      "dest": "index.js"
-    },
-    {
-      "src": "/list-dates",
-      "dest": "index.js"
-    },
-    {
-      "src": "/entries",
-      "dest": "index.js"
-    },
-    {
-      "src": "/entries/driver/[cpf]",
-      "dest": "index.js"
-    },
-    {
-      "src": "/entries/status/[status]",
-      "dest": "index.js"
+      "dest": "/index.js"
     }
-  ],
-  "env": {
-    "DB_HOST": "@db_host",
-    "DB_USER": "@db_user", 
-    "DB_PASS": "@db_pass",
-    "DB_NAME": "@db_name",
-    "DB_PORT": "@db_port",
-    "PORT": "3000"
-  }
+  ]
 }
